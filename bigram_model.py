@@ -2,14 +2,18 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+N_EMBED = 32        # number of embedding dimensions
+
 class BigramLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, N_EMBED)
+        self.lm_head = nn.Linear(N_EMBED, vocab_size)                   # converts the embeddings into vocab size
 
     def forward(self, idx, targets=None):
         
-        logits = self.token_embedding_table(idx) # (B,T,C)
+        token_embeddings = self.token_embedding_table(idx) # (B,T,C)
+        logits = self.lm_head(token_embeddings)            # (B,T,vocab_size)
 
         if targets is None:
             loss = None
