@@ -2,22 +2,22 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from transformer_block import Block
+from hyper_parameters import HyperParameters
+hp = HyperParameters()
 
-N_EMBED = 32        # number of embedding dimensions
-BLOCK_SIZE = 8                              # maximum contenxt length
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-HEAD_SIZE = 4       # attention head size
+DEVICE = hp.DEVICE
+N_EMBED = hp.N_EMBED
+BLOCK_SIZE = hp.BLOCK_SIZE
+N_BLOCK = hp.N_BLOCK
+N_HEAD = hp.N_HEAD
 
 class BigramLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, N_EMBED)
         self.position_embedding_table = nn.Embedding(BLOCK_SIZE, N_EMBED)
-        self.blocks = nn.Sequential(
-            Block(N_EMBED, n_heads=HEAD_SIZE), 
-            Block(N_EMBED, n_heads=HEAD_SIZE), 
-            Block(N_EMBED, n_heads=HEAD_SIZE), 
-        )
+        self.blocks = nn.Sequential(*[ Block(N_EMBED, n_heads=N_HEAD) for _ in range(N_BLOCK)]) # transformer blocks
+        self.f_ln = nn.LayerNorm(N_EMBED)                               # final layernorm
         self.lm_head = nn.Linear(N_EMBED, vocab_size)                   # converts the embeddings into vocab size
 
     def forward(self, idx, targets=None):
@@ -27,6 +27,7 @@ class BigramLanguageModel(nn.Module):
         pos_embeddings = self.position_embedding_table(torch.arange(T, device=DEVICE)) # (T, C)
         x = token_embeddings + pos_embeddings   # addition of both embeddings (B,T,C)
         x = self.blocks(x)
+        x = self.f_ln(x)
         logits = self.lm_head(x)            # (B,T,vocab_size)
 
         if targets is None:

@@ -1,11 +1,10 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from hyper_parameters import HyperParameters
+hp = HyperParameters()
 
-N_EMBED = 32        # number of embedding dimensions
-# HEAD_SIZE = 16      # size of attention head
-BLOCK_SIZE = 8      # maximum contenxt length
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DROP_OUT = hp.DROP_OUT
 
 class FeedForward(nn.Module):
     """ simple linear layer followed by non linearity """
@@ -16,6 +15,7 @@ class FeedForward(nn.Module):
             nn.Linear(n_embed, 4*n_embed),
             nn.ReLU(),
             nn.Linear(4*n_embed, n_embed),
+            nn.Dropout(DROP_OUT),
         )
     def forward(self, x):
         return self.net(x)

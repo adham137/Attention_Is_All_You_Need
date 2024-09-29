@@ -1,13 +1,16 @@
 import text_preprocessor
 import bigram_model
 import torch
+from hyper_parameters import HyperParameters
+hp = HyperParameters()
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-LEARNING_RATE = 1e-2
-MAX_ITERS = 1000                # maximum number of iterations 
-EVAL_INTERVAL = 10             # evaluate the model after how many iterations ?
-EVAL_ITERS = 10                # evaluate the model for how many iterations
-
+DEVICE = hp.DEVICE
+LEARNING_RATE = hp.LEARNING_RATE
+MAX_ITERS = hp.MAX_ITERS
+EVAL_INTERVAL = hp.EVAL_INTERVAL
+EVAL_ITERS = hp.EVAL_ITERS
+OUTPUT_FILE_PATH = hp.OUTPUT_FILE_PATH
+MAX_NEW_TOKENS = hp.MAX_NEW_TOKENS
 
 @torch.no_grad()
 def estimate_losses():
@@ -34,7 +37,7 @@ opt = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 for iter in range(MAX_ITERS):
 
     # every once in a while evaluate the loss on the training and validation set
-    if iter%EVAL_INTERVAL == 0:
+    if iter%EVAL_INTERVAL == 0 :
         losses = estimate_losses()
         print(f"step {iter}: training loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
     
@@ -49,8 +52,11 @@ for iter in range(MAX_ITERS):
 
 
 initial_in = torch.zeros((1,1), dtype=torch.long, device=DEVICE)
-generated_out = model.generate(idx= initial_in, max_new_tokens=100)[0].tolist()
-print(text_preprocessor.decode(generated_out))
+generated_out = model.generate(idx= initial_in, max_new_tokens=MAX_NEW_TOKENS)[0].tolist()
+decoded_string = text_preprocessor.decode(generated_out)
+print(decoded_string)
+with open(OUTPUT_FILE_PATH, 'w') as file:
+    file.write(decoded_string)
 
 
 

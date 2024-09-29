@@ -1,11 +1,14 @@
 import torch
 torch.manual_seed(1337)
 
-FILE_PATH = './Data/tiny_shakespeare.txt'   # data path
-TRAIN_VAL_RATIO = 0.9                       # train validation split ratio
-BLOCK_SIZE = 8                              # maximum contenxt length
-BATCH_SIZE = 32                              # how many idependent sequence we are going to proccess in parallel
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+from hyper_parameters import HyperParameters
+hp = HyperParameters()
+
+FILE_PATH = hp.FILE_PATH
+TRAIN_VAL_RATIO = hp.TRAIN_VAL_RATIO
+BLOCK_SIZE = hp.BLOCK_SIZE
+BATCH_SIZE = hp.BATCH_SIZE
+DEVICE = hp.DEVICE
 
 with open(FILE_PATH, 'r', encoding='utf-8') as f:
     text = f.read()
